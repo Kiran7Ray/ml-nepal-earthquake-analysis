@@ -3,6 +3,8 @@ import numpy as np
 import matplotlib.pyplot as plt 
 import seaborn as sns 
 
+#eda 
+
 # Load and inspect dataset
 data_set=pd.read_csv("../data/cleaned_data.csv") 
 data_set.head() 
@@ -76,3 +78,64 @@ plt.show()
 
 # Sort features by correlation with magnitude
 corr['magnitude'].sort_values( ascending=False )
+
+
+## feature engineering
+#convert to date and time
+data['DateTime']=pd.to_datetime(data['DateTime'])
+data['DateTime']
+
+#extract year ,month ,day, hour ,weekend
+data['year']=data['DateTime'].dt.year
+data['year']
+
+data['month']=data['DateTime'].dt.month
+data['month']
+
+data['day'] = data['DateTime'].dt.day
+data['day']
+
+data['hour']=data['DateTime'].dt.hour
+data['weekday'] = data['DateTime'].dt.dayofweek
+
+#we keep only essential columns
+
+#handle categorical columns
+for cols in ['magnitudeType','type','place']:
+    print(data[cols].value_counts())
+
+
+cat_cols = [
+    'magnitudeType',
+    'type',
+    'place'
+]
+
+data = pd.get_dummies(data, columns=cat_cols, drop_first=True)
+#nepal earthquack often cluster geographically ,create resional feature
+
+def region(lat):
+    
+    if lat < 27.5:
+        return "South"
+    
+    elif lat < 29:
+        return "Central"
+    
+    else:
+        return "North"
+
+data['region'] = data['latitude'].apply(region)
+
+data = pd.get_dummies(
+    data,
+    columns=['region'],
+    drop_first=True
+)
+
+#feature selection
+corr = data.corr(numeric_only=True)
+
+corr['magnitude'].sort_values(
+    ascending=False
+)
